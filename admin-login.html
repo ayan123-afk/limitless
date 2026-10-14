@@ -4,69 +4,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Login | LIMITLESS</title>
   <meta name="theme-color" content="#080d18">
+  <title>Admin Login | LIMITLESS</title>
   <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; display: grid;
-      place-items: center; padding: 20px;
-      font-family: Arial, sans-serif; color: #f4f7ff;
-      background: radial-gradient(ellipse at top, #152a48, #080d18 65%);
-    }
-    .panel {
-      width: 100%; max-width: 420px; padding: 32px;
-      border: 1px solid #263954; border-radius: 20px;
-      background: #0c1422; box-shadow: 0 20px 70px #0008;
-    }
-    .brand { color: #63c8ff; font-size: 13px; letter-spacing: 4px; }
-    h1 { margin: 12px 0 8px; font-size: 29px; }
-    p { color: #a7b5ca; line-height: 1.5; }
-    label { display: block; margin: 18px 0 8px; font-size: 14px; }
-    input {
-      width: 100%; padding: 14px; border-radius: 10px;
-      border: 1px solid #30435d; background: #080f1b;
-      color: white; font-size: 15px; outline: none;
-    }
-    input:focus { border-color: #54bfff; }
-    button {
-      width: 100%; margin-top: 22px; padding: 14px;
-      border: 0; border-radius: 10px; cursor: pointer;
-      color: #04101b; background: #62c7ff;
-      font-size: 15px; font-weight: 700;
-    }
-    button:disabled { opacity: .6; cursor: wait; }
-    #loginMessage {
-      display: none; margin-top: 16px; padding: 12px;
-      border-radius: 9px; background: #241923;
-      color: #ffb9c0; font-size: 13px; line-height: 1.5;
-      overflow-wrap: anywhere;
-    }
-    .back { display: block; margin-top: 20px; color: #91cfff; text-align: center; }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at top,#19365b,#070b13 70%);font-family:Arial,sans-serif;color:#f5f8ff}
+    .panel{width:100%;max-width:410px;padding:32px;background:#0d1625;border:1px solid #293d57;border-radius:20px;box-shadow:0 20px 70px #0008}
+    .brand{letter-spacing:5px;color:#65c8ff;font-size:13px}
+    h1{margin:14px 0 8px;font-size:30px}
+    p{color:#a8b7cc;line-height:1.5}
+    label{display:block;margin:18px 0 8px;font-size:14px}
+    input{width:100%;padding:14px;border-radius:10px;border:1px solid #344660;background:#080f1b;color:white;font-size:15px;outline:none}
+    input:focus{border-color:#65c8ff}
+    button{width:100%;padding:14px;margin-top:22px;border:0;border-radius:10px;background:#65c8ff;color:#06111c;font-weight:bold;font-size:15px;cursor:pointer}
+    button:disabled{opacity:.6;cursor:wait}
+    #status{display:none;padding:12px;margin-top:16px;border-radius:9px;background:#251922;color:#ffc4cb;overflow-wrap:anywhere;font-size:13px;line-height:1.5}
+    .back{display:block;text-align:center;margin-top:20px;color:#9bd8ff}
   </style>
 </head>
 <body>
   <main class="panel">
     <div class="brand">LIMITLESS</div>
     <h1>Admin Login</h1>
-    <p>Sign in with your authorised administrator account.</p>
+    <p>Sign in to manage your store.</p>
 
-    <form id="adminLoginForm">
+    <form id="adminLoginForm" method="post" action="javascript:void(0)">
       <label for="email">Admin email</label>
-      <input id="email" name="email" type="email"
-             autocomplete="username" required>
+      <input id="email" type="email" autocomplete="username" required>
 
       <label for="password">Password</label>
-      <input id="password" name="password" type="password"
-             autocomplete="current-password" required>
+      <input id="password" type="password" autocomplete="current-password" required>
 
       <button id="loginButton" type="submit">Sign In</button>
-      <div id="loginMessage" role="alert" aria-live="polite"></div>
+      <div id="status" role="alert" aria-live="polite"></div>
     </form>
 
-    <a class="back" href="/shop">Back to store</a>
+    <a class="back" href="/shop">← Back to store</a>
   </main>
-
   <script type="module" src="/admin-login.js"></script>
 </body>
 </html>
