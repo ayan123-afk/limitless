@@ -1,151 +1,58 @@
 
 import { firebaseConfig } from "./config.js";
-
-import {
-  initializeApp,
-  getApps
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  setPersistence,
-  browserLocalPersistence
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
-
-import {
-  getFirestore,
-  doc,
-  getDoc
-} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
 
 const form = document.getElementById("adminLoginForm");
 const button = document.getElementById("loginButton");
-const message = document.getElementById("loginMessage");
+const status = document.getElementById("status");
 
-function showMessage(text) {
-  message.textContent = text;
-  message.style.display = "block";
+function showError(text) {
+  status.textContent = text;
+  status.style.display = "block";
 }
 
-function friendlyError(error) {
-  const code = error?.code || "";
-
-  const errors = {
-    "auth/invalid-credential":
-      "Email ya password ghalat hai. Firebase Authentication mein account check karo.",
-    "auth/user-not-found":
-      "Is email ka account Firebase Authentication mein nahi mila.",
-    "auth/wrong-password":
-      "Password ghalat hai. Dobara check karo.",
-    "auth/invalid-email":
-      "Email address sahi format mein likho.",
-    "auth/too-many-requests":
-      "Bohat zyada login attempts hue hain. Kuch dair baad try karo.",
-    "auth/network-request-failed":
-      "Internet connection check karo aur dobara try karo.",
-    "permission-denied":
-      "Firestore ne access deny kiya. Admin document aur Firestore Rules check karo.",
-    "unavailable":
-      "Firebase filhal available nahi. Internet check karke dobara try karo."
-  };
-
-  return errors[code] ||
-    `Login fail hua. Error: ${code || error?.message || "Unknown error"}`;
-}
-
-let auth;
-let db;
-let setupError = null;
-
-try {
-  if (!firebaseConfig ||
-      !firebaseConfig.apiKey ||
-      !firebaseConfig.projectId) {
-    throw new Error(
-      "config.js mein firebaseConfig incomplete hai."
-    );
-  }
-
-  const app = getApps().length
-    ? getApps()[0]
-    : initializeApp(firebaseConfig);
-
-  auth = getAuth(app);
-  db = getFirestore(app);
-} catch (error) {
-  setupError = error;
-  console.error("Firebase setup error:", error);
-}
+const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+  event.stopPropagation();
 
-  message.style.display = "none";
-
-  if (setupError || !auth || !db) {
-    showMessage(
-      "Firebase setup nahi hua. config.js check karo. " +
-      (setupError?.message || "")
-    );
-    return;
-  }
-
-  const email = document.getElementById("email")
-    .value.trim();
-  const password = document.getElementById("password")
-    .value;
-
-  if (!email || !password) {
-    showMessage("Email aur password dono enter karo.");
-    return;
-  }
-
+  status.style.display = "none";
   button.disabled = true;
-  button.textContent = "Checking...";
+  button.textContent = "Signing in...";
 
   try {
-    await setPersistence(auth, browserLocalPersistence);
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-    const result = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password
-    );
+    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const user = credential.user;
 
-    const user = result.user;
+    const adminDoc = await getDoc(doc(db, "admins", user.uid));
 
-    const adminRef = doc(db, "admins", user.uid);
-    const adminSnapshot = await getDoc(adminRef);
-
-    if (!adminSnapshot.exists()) {
-      await auth.signOut();
-      showMessage(
-        "Admin record nahi mila. Firestore mein admins collection " +
-        "banao aur document ID mein is user ka exact UID rakho."
-      );
-      return;
+    if (!adminDoc.exists() || adminDoc.data().active !== true) {
+      await signOut(auth);
+      throw new Error("Admin permission missing. Check admins/{your-UID} and active: true.");
     }
 
-    if (adminSnapshot.data().active !== true) {
-      await auth.signOut();
-      showMessage(
-        "Admin account inactive hai. admins document mein " +
-        "active field ka type Boolean aur value true honi chahiye."
-      );
-      return;
-    }
-
-    button.textContent = "Opening dashboard...";
+    // Password is never added to the URL.
     window.location.replace("/admin/dashboard");
-
   } catch (error) {
-    console.error("Admin login error:", error);
-    showMessage(friendlyError(error));
+    console.error("Login error:", error);
+    const messages = {
+      "auth/invalid-credential": "Email ya password ghalat hai.",
+      "auth/invalid-email": "Email address sahi likho.",
+      "auth/too-many-requests": "Bohat attempts hue. Thori dair baad try karo.",
+      "auth/network-request-failed": "Internet connection check karo.",
+      "permission-denied": "Firestore Rules ne request deny ki. Admin document aur rules check karo."
+    };
+    showError(messages[error.code] || error.message || "Login nahi ho saka.");
   } finally {
     button.disabled = false;
-    if (button.textContent !== "Opening dashboard...") {
-      button.textContent = "Sign In";
-    }
+    button.textContent = "Sign In";
   }
 });
